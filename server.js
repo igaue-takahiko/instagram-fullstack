@@ -9,9 +9,8 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.json({ message: "hello" });
-});
+//Routes
+app.use('/api', require('./routes/authRouter'))
 
 const URL = process.env.MONGO_DB_URL
 mongoose.connect(URL, {
