@@ -45,7 +45,7 @@ const authCtrl = {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
       });
 
-      await newUser.save()
+      await newUser.save();
 
       res.json({
         message: "Register Success!",
@@ -61,18 +61,83 @@ const authCtrl = {
   },
   login: async (req, res) => {
     try {
+      const { email, password } = req.body;
+
+      const user = await Users.findOne({ email }).populate(
+        "followers following",
+        "-password"
+      );
+      if (!user) {
+        return res.status(400).json({ message: "This email does not exist." });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Password is incorrect." });
+      }
+
+      const access_token = createAccessToken({ id: user._id });
+      const refresh_token = createRefreshToken({ id: user._id });
+
+      res.cookie("refreshtoken", refresh_token, {
+        httpOnly: true,
+        path: "/api/refresh_token",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
+      });
+
+      res.json({
+        message: "Login Success!",
+        access_token,
+        user: {
+          ...user._doc,
+          password: "",
+        },
+      });
+
+      res.json({ user });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
   },
   logout: async (req, res) => {
     try {
+      res.clearCookie("refreshtoken", { path: "/api/refresh_token" });
+      return res.json({ message: "Logged out!" });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
   },
   generateAccessToken: async (req, res) => {
     try {
+      const rf_token = req.cookies.refreshtoken;
+      if (!rf_token) {
+        return res.status(400).json({ message: "Please login now." });
+      }
+
+      jwt.verify(
+        rf_token,
+        process.env.REFRESH_TOKEN_SECRET,
+        async (error, result) => {
+          if (error) {
+            return res.status(400).json({ message: "Please login now." });
+          }
+          const user = await Users.findById(result.id)
+            .select("-password")
+            .populate("followers following", "-password");
+
+          if (!user) {
+            return res.status(400).json({ message: "This does not exist." });
+          }
+
+          const access_token = createAccessToken({ id: result.id })
+          res.json({
+            access_token,
+            user,
+          })
+        }
+      );
+
+      res.json({ rf_token });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
