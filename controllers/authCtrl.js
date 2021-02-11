@@ -47,7 +47,7 @@ const authCtrl = {
 
       await newUser.save();
 
-      res.json({
+      return res.json({
         message: "Register Success!",
         access_token,
         user: {
@@ -85,7 +85,7 @@ const authCtrl = {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
       });
 
-      res.json({
+      return res.json({
         message: "Login Success!",
         access_token,
         user: {
@@ -93,8 +93,6 @@ const authCtrl = {
           password: "",
         },
       });
-
-      res.json({ user });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -130,14 +128,12 @@ const authCtrl = {
           }
 
           const access_token = createAccessToken({ id: result.id })
-          res.json({
+          return res.json({
             access_token,
             user,
           })
         }
       );
-
-      res.json({ rf_token });
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }

@@ -25,7 +25,7 @@ mongoose.connect(URL, {
   console.log("Connected to mongoDB");
 })
 
-const post = process.env.POST || 5000;
-app.listen(post, () => {
-  console.log("Server is running on post.", post);
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log("Server is running on port.", port);
 });
