@@ -26,6 +26,39 @@ const userCtrl = {
       return res.status(500).json({ msg: error.message });
     }
   },
+  updateUser: async (req, res) => {
+    try {
+      const {
+        avatar,
+        fullName,
+        mobile,
+        address,
+        story,
+        website,
+        gender,
+      } = req.body;
+      if (!fullName) {
+        return res.status(400).json({ msg: "Please add your full name." });
+      }
+
+      await Users.findOneAndUpdate(
+        { _id: req.user._id },
+        {
+          avatar,
+          fullName,
+          mobile,
+          address,
+          story,
+          website,
+          gender,
+        }
+      );
+
+      return res.json({ msg: "Update Success!" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
 };
 
 module.exports = userCtrl;
