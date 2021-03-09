@@ -25,7 +25,9 @@ const postCtrl = {
     try {
       const posts = await Posts.find({
         user: [...req.user.following, req.user._id],
-      }).populate("user likes", "avatar username fullName");
+      })
+        .sort("createAt")
+        .populate("user likes", "avatar username fullName");
 
       res.json({ msg: "Success!", result: posts.length, posts });
     } catch (error) {
