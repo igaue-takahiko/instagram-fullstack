@@ -12,12 +12,12 @@ const authCtrl = {
       if (user_name) {
         return res
           .status(400)
-          .json({ message: "This user name already exists." });
+          .json({ msg: "This user name already exists." });
       }
 
       const user_email = await Users.findOne({ email });
       if (user_email) {
-        return res.status(400).json({ message: "This email already exists." });
+        return res.status(400).json({ msg: "This email already exists." });
       }
 
       if (password.length < 6) {
@@ -56,7 +56,7 @@ const authCtrl = {
         },
       });
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      return res.status(500).json({ msg: error.message });
     }
   },
   login: async (req, res) => {
@@ -68,12 +68,12 @@ const authCtrl = {
         "-password"
       );
       if (!user) {
-        return res.status(400).json({ message: "This email does not exist." });
+        return res.status(400).json({ msg: "This email does not exist." });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ message: "Password is incorrect." });
+        return res.status(400).json({ msg: "Password is incorrect." });
       }
 
       const access_token = createAccessToken({ id: user._id });
@@ -94,7 +94,7 @@ const authCtrl = {
         },
       });
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      return res.status(500).json({ msg: error.message });
     }
   },
   logout: async (req, res) => {
@@ -102,7 +102,7 @@ const authCtrl = {
       res.clearCookie("refreshtoken", { path: "/api/refresh_token" });
       return res.json({ message: "Logged out!" });
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      return res.status(500).json({ msg: error.message });
     }
   },
   generateAccessToken: async (req, res) => {
@@ -117,14 +117,14 @@ const authCtrl = {
         process.env.REFRESH_TOKEN_SECRET,
         async (error, result) => {
           if (error) {
-            return res.status(400).json({ message: "Please login now." });
+            return res.status(400).json({ msg: "Please login now." });
           }
           const user = await Users.findById(result.id)
             .select("-password")
             .populate("followers following", "-password");
 
           if (!user) {
-            return res.status(400).json({ message: "This does not exist." });
+            return res.status(400).json({ msg: "This does not exist." });
           }
 
           const access_token = createAccessToken({ id: result.id })
