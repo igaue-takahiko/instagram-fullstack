@@ -9,4 +9,7 @@ router
 
 router.route("/post/:id").patch(auth, postCtrl.updatePost);
 
+router.patch("/post/:id/like", auth, postCtrl.likePost);
+router.patch("/post/:id/unlike", auth, postCtrl.unLikePost);
+
 module.exports = router;
