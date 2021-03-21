@@ -27,7 +27,11 @@ const postCtrl = {
         user: [...req.user.following, req.user._id],
       })
         .sort("-createAt")
-        .populate("user likes", "avatar username fullName");
+        .populate("user likes", "avatar username fullName")
+        .populate({
+          path: "comments",
+          populate: { path: "user likes", select: "-password" },
+        });
 
       res.json({ msg: "Success!", result: posts.length, posts });
     } catch (error) {
@@ -81,7 +85,6 @@ const postCtrl = {
   },
   unLikePost: async (req, res) => {
     try {
-
       await Posts.findOneAndUpdate(
         { _id: req.params.id },
         { $pull: { likes: req.user._id } },
