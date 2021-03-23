@@ -19,11 +19,58 @@ const commentCtrl = {
         { new: true }
       );
 
-      await newComment.save()
+      await newComment.save();
 
-      res.json({ newComment })
+      res.json({ newComment });
     } catch (error) {
-      return res.status(500).json({ msg: error.message })
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  updateComment: async (req, res) => {
+    try {
+      const { content } = req.body;
+      await Comments.findOneAndUpdate(
+        { _id: req.params.id, user: req.user._id },
+        { content }
+      );
+
+      res.json({ msg: "Update Success!" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  likeComment: async (req, res) => {
+    try {
+      const comment = await Comments.find({
+        _id: req.params.id,
+        likes: req.user._id,
+      });
+      if (comment.length > 0) {
+        return res.status(400).json({ msg: "You liked this post." });
+      }
+
+      await Comments.findOneAndUpdate(
+        { _id: req.params.id },
+        { $push: { likes: req.user._id } },
+        { new: true }
+      );
+
+      res.json({ msg: "Liked Comment!" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  unLikeComment: async (req, res) => {
+    try {
+      await Comments.findOneAndUpdate(
+        { _id: req.params.id },
+        { $pull: { likes: req.user._id } },
+        { new: true }
+      );
+
+      res.json({ msg: "UnLiked Comment!" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
     }
   },
 };
