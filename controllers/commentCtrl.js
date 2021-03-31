@@ -87,7 +87,7 @@ const commentCtrl = {
         { $pull: { comments: req.params.id } }
       );
 
-      res.json({ msg: "Delete Comment!" })
+      res.json({ msg: "Delete Comment!" });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

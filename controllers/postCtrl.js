@@ -1,5 +1,19 @@
 const Posts = require("../models/postModel");
 
+class API_features {
+  constructor(query, queryString) {
+    this.query = query;
+    this.queryString = queryString;
+  }
+  paginating() {
+    const page = this.queryString * 1 || 1;
+    const limit = this.queryString * 1 || 3;
+    const skip = (page - 1) * limit;
+    this.query = this.query.skip(skip).limit(limit);
+    return this;
+  }
+}
+
 const postCtrl = {
   createPost: async (req, res) => {
     try {
@@ -23,9 +37,13 @@ const postCtrl = {
   },
   getPosts: async (req, res) => {
     try {
-      const posts = await Posts.find({
-        user: [...req.user.following, req.user._id],
-      })
+      const features = new API_features(
+        Posts.find({
+          user: [...req.user.following, req.user._id],
+        }),
+        req.query
+      ).paginating();
+      const posts = await features.query
         .sort("-createAt")
         .populate("user likes", "avatar username fullName")
         .populate({
@@ -103,7 +121,11 @@ const postCtrl = {
   },
   getUserPosts: async (req, res) => {
     try {
-      const posts = await Posts.find({ user: req.params.id }).sort("-createAt");
+      const features = new API_features(
+        Posts.find({ user: req.params.id }),
+        req.query
+      ).paginating();
+      const posts = await features.query.sort("-createAt");
       res.json({ posts, result: posts.length });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
