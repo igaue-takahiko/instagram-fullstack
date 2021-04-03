@@ -18,4 +18,6 @@ router.patch("/post/:id/unlike", auth, postCtrl.unLikePost);
 
 router.get("/user_posts/:id", auth, postCtrl.getUserPosts);
 
+router.get("/post_discover", auth, postCtrl.getPostDiscover);
+
 module.exports = router;

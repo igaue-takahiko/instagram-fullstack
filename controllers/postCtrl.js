@@ -6,8 +6,8 @@ class API_features {
     this.queryString = queryString;
   }
   paginating() {
-    const page = this.queryString * 1 || 1;
-    const limit = this.queryString * 1 || 3;
+    const page = this.queryString.page * 1 || 1;
+    const limit = this.queryString.limit * 1 || 9;
     const skip = (page - 1) * limit;
     this.query = this.query.skip(skip).limit(limit);
     return this;
@@ -140,6 +140,21 @@ const postCtrl = {
           populate: { path: "user likes", select: "-password" },
         });
       res.json({ post });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  getPostDiscover: async (req, res) => {
+    try {
+      const features = new API_features(
+        Posts.find({
+          user: { $nin: [...req.user.following, req.user._id] },
+        }),
+        req.query
+      ).paginating();
+      const posts = await features.query.sort("-createAt");
+
+      res.json({ posts, result: posts.length, msg: "Success!" });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
