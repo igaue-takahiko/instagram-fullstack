@@ -71,13 +71,13 @@ const userCtrl = {
         return res.status(500).json({ msg: "You followed this user." });
       }
 
-      await Users.findOneAndUpdate(
+      const newUser = await Users.findOneAndUpdate(
         { _id: req.params.id },
         {
           $push: { followers: req.user._id },
         },
         { new: true }
-      );
+      ).populate("followers following", "-password");
 
       await Users.findOneAndUpdate(
         { _id: req.user._id },
@@ -87,20 +87,20 @@ const userCtrl = {
         { new: true }
       );
 
-      return res.json({ msg: "Followed User." });
+      return res.json({ newUser });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
   },
   unFollow: async (req, res) => {
     try {
-      await Users.findOneAndUpdate(
+      const newUser = await Users.findOneAndUpdate(
         { _id: req.params.id },
         {
           $pull: { followers: req.user._id },
         },
         { new: true }
-      );
+      ).populate("followers following", "-password");
 
       await Users.findOneAndUpdate(
         { _id: req.user._id },
@@ -110,7 +110,7 @@ const userCtrl = {
         { new: true }
       );
 
-      return res.json({ msg: "UnFollow User." });
+      return res.json({ newUser });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

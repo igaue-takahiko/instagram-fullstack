@@ -47,7 +47,7 @@ const postCtrl = {
       ).paginating();
       const posts = await features.query
         .sort("-createAt")
-        .populate("user likes", "avatar username fullName")
+        .populate("user likes", "avatar username fullName followers")
         .populate({
           path: "comments",
           populate: { path: "user likes", select: "-password" },
