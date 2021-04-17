@@ -5,6 +5,10 @@ const notifyCtrl = {
     try {
       const { id, recipients, url, text, content, image } = req.body;
 
+      if (recipients.includes(req.user._id.toString())) {
+        return;
+      }
+
       const notify = new Notifies({
         id,
         recipients,
@@ -15,8 +19,8 @@ const notifyCtrl = {
         user: req.user._id,
       });
 
-      await notify.save()
-      return res.json({ notify })
+      await notify.save();
+      return res.json({ notify });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
@@ -25,9 +29,20 @@ const notifyCtrl = {
     try {
       const notify = await Notifies.findOneAndDelete({
         id: req.params.id,
-        url: req.query.url
-      })
-      return res.json({ notify })
+        url: req.query.url,
+      });
+      return res.json({ notify });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  getNotifies: async (req, res) => {
+    try {
+      const notifies = await Notifies.find({ recipients: req.user._id })
+        .sort("-createdAt")
+        .populate("user", "avatar username");
+
+      return res.json({ notifies });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }

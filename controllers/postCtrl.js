@@ -49,7 +49,7 @@ const postCtrl = {
         req.query
       ).paginating();
       const posts = await features.query
-        .sort("-createAt")
+        .sort("-createdAt")
         .populate("user likes", "avatar username fullName followers")
         .populate({
           path: "comments",
@@ -138,7 +138,7 @@ const postCtrl = {
         Posts.find({ user: req.params.id }),
         req.query
       ).paginating();
-      const posts = await features.query.sort("-createAt");
+      const posts = await features.query.sort("-createdAt");
       res.json({ posts, result: posts.length });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
@@ -240,7 +240,7 @@ const postCtrl = {
         req.query
       ).paginating();
 
-      const savePosts = await features.query.sort("-createAt");
+      const savePosts = await features.query.sort("-createdAt");
 
       res.json({
         savePosts,
