@@ -57,17 +57,17 @@ const SocketServer = (socket) => {
 
   //Follow
   socket.on("follow", (newUser) => {
-    const user = users.find(user => user.id === newUser._id)
+    const user = users.find((user) => user.id === newUser._id);
     user && socket.to(`${user.socketId}`).emit("followToClient", newUser);
   });
 
   socket.on("unFollow", (newUser) => {
-    const user = users.find(user => user.id === newUser._id)
+    const user = users.find((user) => user.id === newUser._id);
     user && socket.to(`${user.socketId}`).emit("unFollowToClient", newUser);
   });
 
   //Notifications
-  socket.on('createNotify', msg => {
+  socket.on("createNotify", (msg) => {
     const clients = users.filter((user) => msg.recipients.includes(user.id));
 
     if (clients.length > 0) {
@@ -75,9 +75,9 @@ const SocketServer = (socket) => {
         socket.to(`${client.socketId}`).emit("createNotifyToClient", msg);
       });
     }
-  })
+  });
 
-  socket.on('removeNotify', msg => {
+  socket.on("removeNotify", (msg) => {
     const clients = users.filter((user) => msg.recipients.includes(user.id));
 
     if (clients.length > 0) {
@@ -85,7 +85,7 @@ const SocketServer = (socket) => {
         socket.to(`${client.socketId}`).emit("removeNotifyToClient", msg);
       });
     }
-  })
+  });
 };
 
 module.exports = SocketServer;
