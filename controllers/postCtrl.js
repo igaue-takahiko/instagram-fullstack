@@ -139,6 +139,7 @@ const postCtrl = {
         req.query
       ).paginating();
       const posts = await features.query.sort("-createdAt");
+
       res.json({ posts, result: posts.length });
     } catch (error) {
       return res.status(500).json({ msg: error.message });

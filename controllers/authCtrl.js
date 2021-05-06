@@ -10,9 +10,7 @@ const authCtrl = {
 
       const user_name = await Users.findOne({ username: newUserName });
       if (user_name) {
-        return res
-          .status(400)
-          .json({ msg: "This user name already exists." });
+        return res.status(400).json({ msg: "This user name already exists." });
       }
 
       const user_email = await Users.findOne({ email });
@@ -23,7 +21,7 @@ const authCtrl = {
       if (password.length < 6) {
         return res
           .status(400)
-          .json({ message: "Password must be at least 6 characters." });
+          .json({ msg: "Password must be at least 6 characters." });
       }
 
       const passwordHash = await bcrypt.hash(password, 12);
@@ -48,7 +46,7 @@ const authCtrl = {
       await newUser.save();
 
       return res.json({
-        message: "Register Success!",
+        msg: "Register Success!",
         access_token,
         user: {
           ...newUser._doc,
@@ -65,7 +63,7 @@ const authCtrl = {
 
       const user = await Users.findOne({ email }).populate(
         "followers following",
-        "-password"
+        "avatar username fullName followers following"
       );
       if (!user) {
         return res.status(400).json({ msg: "This email does not exist." });
@@ -86,7 +84,7 @@ const authCtrl = {
       });
 
       return res.json({
-        message: "Login Success!",
+        msg: "Login Success!",
         access_token,
         user: {
           ...user._doc,
@@ -109,7 +107,7 @@ const authCtrl = {
     try {
       const rf_token = req.cookies.refreshtoken;
       if (!rf_token) {
-        return res.status(400).json({ message: "Please login now." });
+        return res.status(400).json({ msg: "Please login now." });
       }
 
       jwt.verify(
@@ -121,17 +119,20 @@ const authCtrl = {
           }
           const user = await Users.findById(result.id)
             .select("-password")
-            .populate("followers following", "-password");
+            .populate(
+              "followers following",
+              "avatar username fullName followers following"
+            );
 
           if (!user) {
             return res.status(400).json({ msg: "This does not exist." });
           }
 
-          const access_token = createAccessToken({ id: result.id })
+          const access_token = createAccessToken({ id: result.id });
           return res.json({
             access_token,
             user,
-          })
+          });
         }
       );
     } catch (error) {

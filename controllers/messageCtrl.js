@@ -91,9 +91,28 @@ const messageCtrl = {
   },
   deleteMessages: async (req, res) => {
     try {
-      await Messages.findOneAndDelete({ _id: req.params.id, sender: req.user._id })
+      await Messages.findOneAndDelete({
+        _id: req.params.id,
+        sender: req.user._id,
+      });
 
-      return res.json({ msg: "Delete Success!" })
+      return res.json({ msg: "Delete Success!" });
+    } catch (error) {
+      return res.status(500).json({ msg: error.message });
+    }
+  },
+  deleteConversation: async (req, res) => {
+    try {
+      const newConversation = await Conversations.findOneAndDelete({
+        $or: [
+          { recipients: [req.user._id, req.params.id] },
+          { recipients: [req.params.id, req.user._id] },
+        ],
+      });
+
+      await Messages.deleteMany({ conversation: newConversation._id })
+
+      return res.json({ msg: "Delete Success!" });
     } catch (error) {
       return res.status(500).json({ msg: error.message });
     }
