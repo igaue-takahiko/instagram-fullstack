@@ -1,5 +1,12 @@
 let users = [];
 
+const EditData = (data, id, call) => {
+  const newData = data.map((item) =>
+    item.id === id ? { ...item, call } : item
+  );
+  return newData;
+};
+
 const SocketServer = (socket) => {
   //Connect - Disconnect
   socket.on("joinUser", (user) => {
@@ -19,6 +26,14 @@ const SocketServer = (socket) => {
         clients.forEach((client) => {
           socket.to(`${client.socketId}`).emit("checkUserOffline", data.id);
         });
+      }
+
+      if (data.call) {
+        const callUser = users.find(user => user.id === data.call)
+        if (callUser) {
+          user = EditData(users, callUser.id, null)
+          socket.to(`${callUser.socketId}`).emit("callerDisconnect")
+        }
       }
     }
     users = users.filter((user) => user.socketId !== socket.id);
@@ -83,23 +98,13 @@ const SocketServer = (socket) => {
 
   //Notifications
   socket.on("createNotify", (msg) => {
-    const clients = users.filter((user) => msg.recipients.includes(user.id));
-
-    if (clients.length > 0) {
-      clients.forEach((client) => {
-        socket.to(`${client.socketId}`).emit("createNotifyToClient", msg);
-      });
-    }
+    const client = users.filter((user) => msg.recipients.includes(user.id));
+    client && socket.to(`${client.socketId}`).emit("createNotifyToClient", msg);
   });
 
   socket.on("removeNotify", (msg) => {
-    const clients = users.filter((user) => msg.recipients.includes(user.id));
-
-    if (clients.length > 0) {
-      clients.forEach((client) => {
-        socket.to(`${client.socketId}`).emit("removeNotifyToClient", msg);
-      });
-    }
+    const client = users.find((user) => msg.recipients.includes(user.id));
+    client && socket.to(`${client.socketId}`).emit("removeNotifyToClient", msg);
   });
 
   //Message
@@ -124,6 +129,39 @@ const SocketServer = (socket) => {
           .to(`${client.socketId}`)
           .emit("checkUserOnlineToClient", data._id);
       });
+    }
+  });
+
+  //Call User
+  socket.on("callUser", (data) => {
+    users = EditData(users, data.sender, data.recipient);
+
+    const client = users.find((user) => user.id === data.recipient);
+
+    if (client) {
+      if (client.call) {
+        users = EditData(users, data.sender, null);
+        socket.emit("userBusy", data);
+      } else {
+        users = EditData(users, data.recipient, data.sender);
+        socket.to(`${client.socketId}`).emit("callUserToClient", data);
+      }
+    }
+  });
+
+  socket.on("endCall", (data) => {
+    const client = users.find((user) => user.id === data.sender);
+    if (client) {
+      socket.to(`${client.socketId}`).emit("endCallToClient", data);
+      users = EditData(users, data.id, null);
+
+      if (client.call) {
+        const clientCall = users.find((user) => user.id === client.call);
+        clientCall &&
+          socket.to(`${client.socketId}`).emit("endCallToClient", data);
+
+        users = EditData(users, client.call, null);
+      }
     }
   });
 };

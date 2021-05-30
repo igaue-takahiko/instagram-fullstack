@@ -18,7 +18,7 @@ class API_features {
 const messageCtrl = {
   createMessage: async (req, res) => {
     try {
-      const { recipient, text, media } = req.body;
+      const { sender, recipient, text, media, call } = req.body;
       if (!recipient || (!text.trim() && media.length === 0)) {
         return;
       }
@@ -26,21 +26,23 @@ const messageCtrl = {
       const newConversation = await Conversations.findOneAndUpdate(
         {
           $or: [
-            { recipients: [req.user._id, recipient] },
-            { recipients: [recipient, req.user._id] },
+            { recipients: [sender, recipient] },
+            { recipients: [recipient, sender] },
           ],
         },
         {
           recipients: [req.user._id, recipient],
           text,
           media,
+          call
         },
         { new: true, upsert: true }
       );
 
       const newMessage = new Messages({
         conversation: newConversation,
-        sender: req.user._id,
+        sender,
+        call,
         recipient,
         text,
         media,
